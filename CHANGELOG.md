@@ -15,6 +15,10 @@
 - README §6 整节重写为真机验证过的安装步骤（`link:` + `dsh.profile.bundles` + `mklink /J` → `plugin_manager set_bundle` → `curl /state` → 回滚），并删掉旧版"手工往 `cordis.patch.yml` 加 `- id: multi-workspace`"的错误指导（真实行 id 是 `dsh-multi-workspace`）。
 - 自检计数 203 → 205（新增客户端引导卡守卫、离线预览引导卡守卫）。
 
+### 仓库
+
+- 首次发布到 GitHub：<https://github.com/David-Martinez-worldexecute/dsh-multi-workspace>（本次提交同时补齐 `package.json` 的 `repository` / `homepage` / `bugs`）。
+
 ## [0.5.1] - 2026-11-20
 
 这一版没有新功能，全部是「装上之后真的能用」的修复。每一条都是在本机真实加载里撞出来的，不是推测。

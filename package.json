@@ -14,6 +14,14 @@
     "writable-roots",
     "agent-safety"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/David-Martinez-worldexecute/dsh-multi-workspace.git"
+  },
+  "homepage": "https://github.com/David-Martinez-worldexecute/dsh-multi-workspace#readme",
+  "bugs": {
+    "url": "https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/issues"
+  },
   "main": "src/index.mjs",
   "exports": {
     ".": "./src/index.mjs",
