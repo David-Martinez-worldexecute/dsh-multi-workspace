@@ -19,6 +19,13 @@
 
 - 首次发布到 GitHub：<https://github.com/David-Martinez-worldexecute/dsh-multi-workspace>（本次提交同时补齐 `package.json` 的 `repository` / `homepage` / `bugs`）。
 
+### 仓库规范化（开源形状）
+
+- **README 重写为双语**：首屏换成徽章 + 一句话定位 + 面板截图 + 「快速开始 · Quick start」+ 三条边界表 + 18 行目录；正文 12 个标题统一成 `N · 中文 · English`；新增「兼容性 / 贡献 / 安全 / 版本与发布 / 许可证 / 致谢」六节。
+- **面板截图**：`docs/panel-preview.png`（2360×1720，无头 Chromium 渲染 `panel/preview.html`），README 首屏直接引用。
+- **社区文件**：`CONTRIBUTING.md`、`CODE_OF_CONDUCT.md`、`.github/PULL_REQUEST_TEMPLATE.md`、`.github/ISSUE_TEMPLATE/{config,bug_report,feature_request}.yml`。
+- **仓库形状守卫** `tests/docs.test.mjs`（8 条）：截图存在且是真 PNG、README 本地链接全部可达、目录行数与正文标题数一致、社区文件齐全、`package.json` 元数据与 `dsh` 字段齐全。自检计数 205 → 213。
+
 ## [0.5.1] - 2026-11-20
 
 这一版没有新功能，全部是「装上之后真的能用」的修复。每一条都是在本机真实加载里撞出来的，不是推测。

@@ -20,6 +20,7 @@ const FILES = [
   './panel.test.mjs',
   './http.test.mjs',
   './client.test.mjs',
+  './docs.test.mjs',
 ];
 
 for (const file of FILES) {

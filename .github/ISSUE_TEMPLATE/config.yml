@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全漏洞 · Security vulnerability
+    url: https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/security/advisories/new
+    about: 请不要用公开 issue 报安全问题；优先走私密 advisory。Please report security issues privately.
+  - name: 使用问题 · Usage question
+    url: https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/discussions
+    about: 装不上、面板没出现、被拒了不知道原因 —— 先看 README §6/§8，再来这里问。

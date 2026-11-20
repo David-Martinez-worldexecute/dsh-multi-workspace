@@ -1,23 +1,67 @@
 # dsh-multi-workspace
 
-> **Windows 上先看清这三条**：① 文件工具（`write`/`edit`/`ops_*`/Office 工具）认额外根；② `pwsh`/`bash` 子进程**不认**额外根，只认工作区 + 私有 temp；③ 读本来就全放开，本项目只管**写**。
-> 这不是"没做完"，是 DSH 0.2.2-rc.3 的既有边界（`dsh-pwsh-sandbox` 只把 workspace root 与私有 temp 交给子进程）。
+<p>
+  <a href="https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/actions/workflows/ci.yml/badge.svg"></a>
+  <img alt="license" src="https://img.shields.io/badge/license-MIT-blue.svg">
+  <img alt="node" src="https://img.shields.io/badge/node-%3E%3D24.9.0-3c873a.svg">
+  <img alt="tests" src="https://img.shields.io/badge/tests-213%20passing-brightgreen.svg">
+  <img alt="dsh" src="https://img.shields.io/badge/DeepSeek%20Harness-0.2.2--rc.3-6f42c1.svg">
+</p>
 
-一句话：**给 DSH Agent 自由加多个文件活动范围，并且每个根能单独规定读/写/删/移**。不重写沙箱，只在现有能力上做"规则 + 入口 + 审计"。
+**给 DeepSeek Harness 的 Agent 自由添加多个文件活动范围，并且每个根单独规定「读 / 写 / 删 / 移」。**
 
-## 0. 第一次使用（30 秒）
+_Multiple writable workspaces for DSH agents — per-root capabilities, session-scoped grants, JSONL audit, and a real in-app panel. No kernel patches._
 
-装好之后，点会话输入框左边的「根 N」胶囊；面板第一屏就是三步引导，关掉以后点右上角 **?** 能再看一遍。
+![多工作区面板 · the panel](docs/panel-preview.png)
 
-1. **加一个根** —— 粘贴一个绝对路径（例如 `D:\work\proj-a`），选能力位（读/写/删/移），按「添加」。
-2. **确认它生效** —— 顶部「持久根」列表里出现这一行；想反悔就按「撤销」（最多回 5 步）。
-3. **让 Agent 用它** —— 在会话里直接说「在 `D:\work\proj-a` 下新建 `x.py`」；被拒时会告诉你哪条规则拦的、为什么。
+<p align="center"><sub>面板长在会话输入框左侧，点开即用；离线演示见 <a href="panel/preview.html">panel/preview.html</a></sub></p>
 
-两件最容易踩的事：`pwsh` / `bash` 子进程**不认**额外根（只有文件工具认）；`panel/preview.html` 是离线演示页，能点但**不写配置**，真面板在 DSH 里。
+## 快速开始 · Quick start
+
+装好之后，点会话输入框左边的 **「根 N」** 胶囊；面板第一屏就是三步引导，关掉以后点右上角 **?** 能再看一遍。
+
+1. **加一个根** —— 粘贴一个绝对路径（例如 `D:\work\proj-a`），选能力位（读 / 写 / 删 / 移），按「添加」。<br>_Add a root: paste an absolute path, pick capabilities, hit Add._
+2. **确认它生效** —— 顶部「持久根」列表出现这一行；想反悔按「撤销」（最多回 5 步）。<br>_Verify: the row shows up; Undo reverts up to 5 steps._
+3. **让 Agent 用它** —— 直接说「在 `D:\work\proj-a` 下新建 `x.py`」；被拒时会告诉你哪条规则拦的、为什么。<br>_Use it: just ask the agent to write there; denials name the rule and the reason._
+
+最短安装路径（真机验证过的四步）见 [§6 安装](#6--安装--installation)。
+
+### ⚠️ 三条边界，先看清 · Three boundaries first
+
+| # | 边界 | Boundary |
+| --- | --- | --- |
+| 1 | 文件工具（`write` / `edit` / `patch` / `delete` / `move` / `ops_*` / Office）**认**额外根 | File tools honour extra roots |
+| 2 | `pwsh` / `bash` **子进程不认**额外根，只认工作区 + 私有 temp | Shell subprocesses do **not** (DSH 0.2.2-rc.3 limitation) |
+| 3 | 读本来就全放开，本项目只管**写** | Reads are unrestricted; this project governs **writes** |
+
+这不是"没做完"，是 `dsh-pwsh-sandbox` 只把 workspace root 与私有 temp 交给子进程。
+
+## 目录 · Table of contents
+
+| 章节 | Section |
+| --- | --- |
+| [1 · 它解决什么问题](#1--它解决什么问题--why-this-exists) | Why this exists |
+| [2 · 三层架构](#2--三层架构--architecture) | Architecture |
+| [3 · 规则格式](#3--规则格式--rule-format) | Rule format |
+| [4 · 两种用法](#4--两种用法--two-ways-to-use) | Two ways to use |
+| [5 · 工具 API](#5--工具-api--tool-api) | Tool API |
+| [6 · 安装](#6--安装--installation) | Installation |
+| [7 · 自检](#7--自检--self-check) | Self-check |
+| [8 · 边界与安全](#8--边界与安全--boundaries--security) | Boundaries & security |
+| [9 · 项目结构](#9--项目结构--project-layout) | Project layout |
+| [10 · 面板](#10--面板--the-panel) | The panel |
+| [11 · 实现对应](#11--实现对应--internals) | Internals |
+| [12 · 踩坑记录](#12--踩坑记录--pitfalls-from-real-installs) | Pitfalls |
+| [13 · 兼容性](#13--兼容性--compatibility) | Compatibility |
+| [14 · 贡献](#14--贡献--contributing) | Contributing |
+| [15 · 安全](#15--安全--security) | Security |
+| [16 · 版本与发布](#16--版本与发布--releases) | Releases |
+| [17 · 许可证](#17--许可证--license) | License |
+| [18 · 致谢](#18--致谢--acknowledgements) | Acknowledgements |
 
 ---
 
-## 1. 它解决的到底是什么问题
+## 1 · 它解决什么问题 · Why this exists
 
 DSH 默认只有**一个**工作区。换个项目写个文件就会被围栏拦下来，提示 `[sandbox: file access denied under workspace-write mode]`。
 
@@ -31,7 +75,7 @@ DSH 默认只有**一个**工作区。换个项目写个文件就会被围栏拦
 | 保护 `.env` / `*.pem` / `id_rsa` | 无 | 敏感名单**优先于**根匹配，命中即拒 |
 | 事后能查"谁被拒了、为什么" | 审批不带参数、无记录 | JSONL 审计，超 5MB 轮转 |
 
-## 2. 三层架构（重要：它不碰执行层）
+## 2 · 三层架构 · Architecture
 
 ```
 ① 规则层   本项目拥有   profile 的 multi-workspace 行（roots / shell / sensitive / audit）
@@ -43,7 +87,7 @@ DSH 默认只有**一个**工作区。换个项目写个文件就会被围栏拦
 
 `sync` 只做"把规则层算出来的根写进授权层"，并且**必须**整行重述（DSH 的 patch 是整行替换，只写一个键会把 `mode`/`workspaceRoot` 弄丢）。
 
-## 3. 规则长什么样
+## 3 · 规则格式 · Rule format
 
 ```yaml
 roots:
@@ -81,7 +125,7 @@ audit:
 11. `ro` 且非读 → `READ_ONLY_ROOT`
 12. 没有该能力位 → `CAPABILITY_DENIED`
 
-## 4. 两种用法
+## 4 · 两种用法 · Two ways to use
 
 ### A. 本地控制台（零依赖，不装进 DSH 就能用）
 
@@ -102,7 +146,7 @@ node bin/mw.mjs status
 
 见第 6 节。**这一步会改 profile，需要你拍板。**
 
-## 5. 模型看到的工具
+## 5 · 工具 API · Tool API
 
 工具名 `workspace_roots`，一个入口多个动作：
 
@@ -134,7 +178,7 @@ node bin/mw.mjs status
 - `session-*` 是**会话级临时根**：走 `ctx.sandboxPolicy.registerWritableRoot(session, dir)`，只对那一场会话生效、不写配置、不继承 subagent，`ttlMinutes` 到点自动撤销。
 - `undo` 最多回退 5 步；`export`/`import` 是整份规则文档往返（导入要过审批）。
 
-## 6. 装进 DSH（真机验证过的步骤）
+## 6 · 安装 · Installation
 
 > 这一节在 v0.5.1 重写过。旧版教人手工往 `cordis.patch.yml` 加 `- id: multi-workspace`，那是错的：
 > 行 id 必须等于包名 `dsh-multi-workspace`，否则 `configEditor.edit` 会报
@@ -189,17 +233,17 @@ curl http://127.0.0.1:<你的端口>/plugins/dsh-multi-workspace/state
 规则留在 profile 配置行里，写不进去时在 `.dsh/multi-workspace-rules.json`；审计日志在
 `.dsh/multi-workspace-audit.jsonl`。两者都不影响 DSH 启动，可以随时删。
 
-## 7. 自检
+## 7 · 自检 · Self-check
 
 ```bash
-node tests/run-all.mjs     # 期望：tests 205 / pass 205 / fail 0
+node tests/run-all.mjs     # 期望：tests 213 / pass 213 / fail 0
 node bin/mw.mjs list       # 期望：一句人话，不是空表格
 node bin/mw.mjs diff       # 期望：如实报告授权层现状
 ```
 
 为什么不用 `node --test`：DSH 的 workspace-write 沙箱里测试运行器要 `spawn` 子进程，会直接 `Error: spawn EPERM`（一条用例都没跑，报成 `tests 1 fail 1`）。`run-all.mjs` 用**同进程 import** 跑全部用例。
 
-## 8. 已知边界（诚实清单）
+## 8 · 边界与安全 · Boundaries & Security
 
 | # | 边界 | 会不会补 |
 | --- | --- | --- |
@@ -216,7 +260,7 @@ node bin/mw.mjs diff       # 期望：如实报告授权层现状
 | 11 | `/plugins/<包名>/...` **不经过** session cookie 校验 | 所以每条路由都必须自己做"只收本机回环 + Origin 与 Host 同源"两道检查；漏一条就是局域网里谁都能改你的可写根 |
 | 12 | **面板不显示 ≠ 插件没加载** | 先用 `curl .../plugins/dsh-multi-workspace/state` 分辨：404 = 服务端没挂；200 但没有胶囊 = 客户端 bundle/槽位问题 |
 
-## 9. 文件地图
+## 9 · 项目结构 · Project layout
 
 | 文件 | 作用 |
 | --- | --- |
@@ -236,11 +280,11 @@ node bin/mw.mjs diff       # 期望：如实报告授权层现状
 | `tests/client.test.mjs` | 用 `vm` + 假 React 真跑一遍 bundle：id 对包名、`apply` 挂对槽位、无 ESM 语句 |
 | `tests/store.test.mjs` | 规则文档读写、授权层 diff、撤销栈、导入导出（假 configEditor） |
 | `tests/tool.test.mjs` | 工具面：审批闸、evaluate/doctor/undo/import/session-* |
-| `tests/run-all.mjs` | 同进程聚合跑 205 条用例（含面板结构守卫 `panel.test.mjs`） |
+| `tests/run-all.mjs` | 同进程聚合跑 213 条用例（含面板结构守卫 `panel.test.mjs`、仓库形状守卫 `docs.test.mjs`） |
 | `LICENSE` / `CHANGELOG.md` / `SECURITY.md` | 开源三件套（安全模型写在 `SECURITY.md`） |
 | `.github/workflows/ci.yml` | CI：语法检查 + 全量测试 + 装前自检 + CLI 冒烟 |
 
-## 10. DSH 里的面板（v0.5）
+## 10 · 面板 · The panel
 
 装进 profile 并**重启**之后，对话输入框左侧（自动继续开关那一条的最左边）会出现一个「根 N」小胶囊：
 
@@ -267,7 +311,7 @@ node bin/mw.mjs diff       # 期望：如实报告授权层现状
 | 撤销 | 「根」页底部「撤销」 | 最多 5 步，写失败的不进栈 |
 | 导入导出 | 「工具」页导出到文本框 / 粘贴回来导入 | 导入会覆盖整份规则文档 |
 
-## 11. v0.5 的高级功能（代码层对应）
+## 11 · 实现对应 · Internals
 
 | 功能 | 代码落点 | 判定/返回 |
 | --- | --- | --- |
@@ -282,7 +326,7 @@ node bin/mw.mjs diff       # 期望：如实报告授权层现状
 
 仓库级的东西已经准备好了（`LICENSE`、`CHANGELOG.md`、`SECURITY.md`、`.gitignore`、CI）。**推上 GitHub 不是本地动作**：需要先建远端仓库、再加 `repository` 字段，然后由你决定是否 `git push`。本项目不做自动推送。
 
-## 12. v0.5.1 踩过的五个坑（真机才撞得到）
+## 12 · 踩坑记录 · Pitfalls from real installs
 
 这一节不是功能介绍，是「装上之后为什么没反应」的排障索引。每一条都在这台机器上真实发生过，现象和根因都在下面。
 
@@ -298,3 +342,53 @@ node bin/mw.mjs diff       # 期望：如实报告授权层现状
 
 1. **插件"能显示"和"能干活"是两条独立的加载链**。客户端 bundle 走 `dsh.client` + `exports["./client"]`；服务端走 `cordis.patch.yml` 的 `- insert:` 行。客户端能渲染，完全不代表节点侧活着 —— 先 `curl /plugins/<包名>/state`，404 就是节点侧没起来。
 2. **降级要留痕**。写配置失败时现在会退到 `.dsh/multi-workspace-rules.json`，并把 `via: 'file'` 一路透到面板上 —— 否则「保存成功」可能只是落在没人读的地方。
+
+## 13 · 兼容性 · Compatibility
+
+| 项目 | 要求 | Requirement |
+| --- | --- | --- |
+| DeepSeek Harness | `0.2.2-rc.3`（实测版本） | tested on 0.2.2-rc.3 |
+| Node.js | `>= 24.9.0` | see `engines` in `package.json` |
+| 系统 | Windows 10 / 11（`pwsh` 边界只在 Windows 上验证过） | Windows 10/11 |
+| 运行时依赖 | **零**（只用 `node:` 内置模块） | zero runtime deps |
+
+客户端 bundle 走 `dsh.client`（`platform: web`），服务端走 `dsh.bundle.patch`（Cordis 行插入）。两者都只在 DSH 启动 / 热激活时读，改完必须重启或 `plugin_manager set_bundle`。
+
+## 14 · 贡献 · Contributing
+
+欢迎 issue / PR。开始之前请读 [CONTRIBUTING.md](CONTRIBUTING.md)，它写清了本地怎么跑、提交信息怎么写、以及哪些改动会被拒（例如绕过 `tests/` 里已有的守卫）。
+
+```bash
+npm test                        # = node tests/run-all.mjs，必须全绿
+npm run check                   # 测试 + load-check（真调 apply() 的加载自检）
+node scripts/route-probe.mjs    # 假 ctx 跑一遍路由注册
+```
+
+最小可复现的 bug 报告模板见 [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE)。
+
+## 15 · 安全 · Security
+
+策略栅栏，**不是内核边界**。它拦的是 Agent 的工具调用，不是操作系统层面的隔离。完整威胁模型、已知绕过与报告方式见 [SECURITY.md](SECURITY.md)。
+
+三条必须知道的：
+
+- `allowShell: true` 会让围栏**只剩文件工具这一层**（子进程本来就不受控）；
+- 符号链接：围栏按字面路径判定，不解析 `realpath` 后的目标；
+- 面板的写操作**不过工具审批** —— 审批是给"模型发起的调用"的，点面板的是人。
+
+## 16 · 版本与发布 · Releases
+
+版本遵循 [SemVer](https://semver.org/)，变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+
+```bash
+git tag -a v0.5.2 -m "v0.5.2" && git push origin v0.5.2
+gh release create v0.5.2 --title "v0.5.2" --notes-file CHANGELOG.md
+```
+
+## 17 · 许可证 · License
+
+[MIT](LICENSE) © 2026 dsh-multi-workspace contributors
+
+## 18 · 致谢 · Acknowledgements
+
+架构与契约来自 DeepSeek Harness 本体（`@deepseek-ai/dsh-sandbox-policy`、`dsh-host-webserver`、Cordis 插件系统）；面板的插槽契约与若干踩坑结论，是从 `dsh-ai-memory`、`dsh-client-auto-continue` 这两个真实插件对照出来的。

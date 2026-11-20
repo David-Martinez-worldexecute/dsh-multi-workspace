@@ -1,0 +1,69 @@
+name: Bug 报告 · Bug report
+description: 装不上 / 面板没出现 / 该放行的被拒 / 该拒的放行了
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        先花 30 秒确认三件事，能省掉一半往返：
+        1. `curl -s http://127.0.0.1:<端口>/plugins/dsh-multi-workspace/state` 是不是 **200**？404 = 节点侧没加载（看 README §6.2）。
+        2. `node tests/run-all.mjs` 是不是全绿？
+        3. 被拒时面板/工具返回的 **code** 是什么（不是 message，是 `PATH_OUTSIDE_SCOPE` 这种）？
+  - type: dropdown
+    id: area
+    attributes:
+      label: 出问题的位置 · Area
+      options:
+        - 安装 / 加载（装完没界面、404）
+        - 面板（按钮没反应、报错）
+        - 判定（该放行被拒 / 该拒放行）
+        - CLI（bin/mw.mjs）
+        - 文档 / 测试
+    validations:
+      required: true
+  - type: input
+    id: dsh
+    attributes:
+      label: DSH 版本
+      description: 设置里看到的版本号，或 `runtime.json` 的 desktopVersion
+      placeholder: "0.2.2-rc.3"
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node 版本
+      placeholder: "v24.9.0"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 最小复现 · Steps
+      description: 按顺序写「点了什么 / 跑了什么命令」。不要贴整个会话日志。
+      placeholder: |
+        1. 面板里加根 D:\work\proj-a，能力位只勾「读」
+        2. 让 Agent 往里写文件
+        3. 期望被拒，实际放行了
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望 vs 实际 · Expected vs actual
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: 关键输出 · Output
+      description: 贴 code / diagnostic / 相关几行日志。路径请脱敏（用户名换成 <user>）。
+      render: text
+  - type: checkboxes
+    id: redacted
+    attributes:
+      label: 脱敏确认
+      options:
+        - label: 我确认没有贴出凭据、token 或他人的私人路径
+          required: true
