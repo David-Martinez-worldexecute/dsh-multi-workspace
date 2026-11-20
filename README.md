@@ -4,7 +4,7 @@
   <a href="https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="license" src="https://img.shields.io/badge/license-MIT-blue.svg">
   <img alt="node" src="https://img.shields.io/badge/node-%3E%3D24.9.0-3c873a.svg">
-  <img alt="tests" src="https://img.shields.io/badge/tests-213%20passing-brightgreen.svg">
+  <img alt="tests" src="https://img.shields.io/badge/tests-217%20passing-brightgreen.svg">
   <img alt="dsh" src="https://img.shields.io/badge/DeepSeek%20Harness-0.2.2--rc.3-6f42c1.svg">
 </p>
 
@@ -236,7 +236,7 @@ curl http://127.0.0.1:<你的端口>/plugins/dsh-multi-workspace/state
 ## 7 · 自检 · Self-check
 
 ```bash
-node tests/run-all.mjs     # 期望：tests 213 / pass 213 / fail 0
+node tests/run-all.mjs     # 期望：tests 217 / pass 217 / fail 0
 node bin/mw.mjs list       # 期望：一句人话，不是空表格
 node bin/mw.mjs diff       # 期望：如实报告授权层现状
 ```
@@ -280,7 +280,7 @@ node bin/mw.mjs diff       # 期望：如实报告授权层现状
 | `tests/client.test.mjs` | 用 `vm` + 假 React 真跑一遍 bundle：id 对包名、`apply` 挂对槽位、无 ESM 语句 |
 | `tests/store.test.mjs` | 规则文档读写、授权层 diff、撤销栈、导入导出（假 configEditor） |
 | `tests/tool.test.mjs` | 工具面：审批闸、evaluate/doctor/undo/import/session-* |
-| `tests/run-all.mjs` | 同进程聚合跑 213 条用例（含面板结构守卫 `panel.test.mjs`、仓库形状守卫 `docs.test.mjs`） |
+| `tests/run-all.mjs` | 同进程聚合跑 217 条用例（含面板结构守卫 `panel.test.mjs`、仓库形状守卫 `docs.test.mjs`） |
 | `LICENSE` / `CHANGELOG.md` / `SECURITY.md` | 开源三件套（安全模型写在 `SECURITY.md`） |
 | `.github/workflows/ci.yml` | CI：语法检查 + 全量测试 + 装前自检 + CLI 冒烟 |
 
@@ -335,8 +335,11 @@ node bin/mw.mjs diff       # 期望：如实报告授权层现状
 | 面板一直是 `HTTP 404`，但客户端 UI 正常显示 | `ctx.configEditor` / `ctx.workspaceRoot` 这类服务在 Cordis 里**先 inject 才能读**；直接读抛 `cannot get property "X" without inject`，异常打断**整个插件激活** | 统一走 `safeService()`，读不到就 `undefined`；每个实例往 `.dsh/load-trace.log` 写一行状态 |
 | 点「加持久根」报 `Configuration entry is no longer available` | `rowId` 默认值是 `multi-workspace`，而 `cordis.patch.yml` 里的行 id 是 `dsh-multi-workspace` | 两处默认值统一；任何自定义行 id 必须与 patch 行 id 逐字相同 |
 | 工具表里没有 `workspace_roots` | `tool "workspace_roots" must declare output { schema, render, presentationMeta? }` | 补 `output.schema` + `output.render` |
+| 面板说「临时根用不了」、规则只能落兜底文件 | 可选服务的探测写成 `ctx[name]` 属性访问，而宿主在没 `inject` 时不把服务挂属性上 → `configEditor` / `sandboxPolicy` / `sessions` 永远是 `undefined` | 改成**优先 `ctx.get(name)`**（宿主 app.asar 自带文档的写法），属性访问只作兜底；热激活后 `persistVia` 与 `sessionRootsSupported` 立刻正常 |
+| `persistVia: "config"` 但实际写的是兜底文件 | 服务在 ≠ 写进去了：profile 的 `cordis.patch.yml` 里没有本插件的行（bundle 的行住在插件自己包里，`configEditor` 不认它），`edit()` 抛 `Configuration entry is no longer available` | `persistVia` 报**默认落点**（`file`），原因写进 `status.notes`，不再声称写进了配置行 |
 | 配置里写了 `allowShell: true`，命令还是被拒 | `resolve()` 从来没读过这个键 | `allowShell` 现在是总闸；不写就按 `doc.shell` 判 |
 | 界面上只勾了「读+写」，实际能删能移 | 面板原来的 `add` 请求不带能力位，服务端按四个全给建档 | 请求带 `caps`；`/roots` 三个入口同时认 `caps` 与 `capabilities` |
+| 面板「试算」说会被拒，工具实际却能跑（或反过来） | 守卫 `guard()` 与试算 `evaluateCall()` 是两个出口，后者漏传 `allowShell` —— 两边看到的世界不一样 | 两个出口用同一份参数；`tests/contract.test.mjs` 锁死「同一次调用必须同答案」 |
 
 两条给后来者的提醒：
 

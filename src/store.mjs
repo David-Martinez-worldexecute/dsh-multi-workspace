@@ -447,6 +447,14 @@ export function createStore(options = {}) {
     },
     load,
     save,
+    /**
+     * 兜底文件到底能不能写。status 要拿它区分「真的没地方存」和
+     * 「本机没有 configEditor，但规则确实落到 .dsh/multi-workspace-rules.json 了」——
+     * 后者不是故障，不该出现在 problems 里吓人。
+     */
+    canFileWrite: () => canFileWrite,
+    canFileRead: () => canFileRead,
+    rulesFile,
     add: (entry) => mutate((current) => upsertRoot(current, entry, platform), 'add'),
     remove: (target) => mutate((current) => removeRoot(current, target, platform), 'remove'),
     update: (target, patch) => mutate((current) => patchRoot(current, target, patch, platform), 'update'),

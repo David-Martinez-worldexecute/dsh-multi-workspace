@@ -53,7 +53,7 @@ function traceLoad(event, extra = {}) {
 
 /** 与包名保持一致：Cordis 的行名与包名不同名时，排查成本会白白翻倍。 */
 export const name = 'dsh-multi-workspace';
-export const version = '0.5.2';
+export const version = '0.5.3';
 
 /**
  * Cordis 的依赖声明。`tools` 是必须的（不给就只有工具没有守卫）；
@@ -85,6 +85,18 @@ const DEFAULT_CONFIG = Object.freeze({
  * 所以这些读取必须变成不抛错的探测。
  */
 function safeService(ctx, name) {
+  // 优先走宿主的服务查找接口 `ctx.get(name)` —— 这是 app.asar 里自带文档的写法
+  // （示例：`const editor = ctx.get('configEditor')`）。它不需要先 inject 就能查，
+  // 因此可选服务的探测必须走这条路；直接 `ctx[name]` 在没 inject 时会抛
+  // "cannot get property ... without inject"，而那正是把插件锁死在降级态的根因。
+  try {
+    if (typeof ctx?.get === 'function') {
+      const found = ctx.get(name);
+      if (found !== undefined && found !== null) return found;
+    }
+  } catch {
+    /* ctx.get 在某些宿主上也会抛：继续用属性探测兜底 */
+  }
   try {
     return ctx?.[name];
   } catch {
@@ -274,6 +286,7 @@ export function createInstance(ctx = {}, config = {}) {
     fs: merged.fs,
     platform,
     workspaceRoot: merged.workspaceRoot ?? services.workspaceRoot ?? process.cwd(),
+    allowShell: merged.allowShell === true,
     approve: merged.approve,
     requireApproval: merged.requireApproval,
     session: { add: registerSessionRoot, remove: removeSessionRoot, list: listSessionRoots },
@@ -301,6 +314,9 @@ export function createInstance(ctx = {}, config = {}) {
       platform,
       mode: merged.mode ?? 'workspace-write',
       enforceRead: merged.enforceRead === true,
+      // 试算必须用**和守卫完全相同的入参**。这里漏过 allowShell：守卫放行 shell，
+      // 试算却回 SHELL_UNCONTROLLED —— 同一个问题两个出口两种答案（真机上被当成"shell 被禁"）。
+      allowShell: merged.allowShell === true,
     });
     return {
       ok: true,
@@ -409,6 +425,10 @@ export function createInstance(ctx = {}, config = {}) {
               workspaceRoot: merged.workspaceRoot ?? services.workspaceRoot ?? process.cwd(),
               fs: merged.fs,
               audit,
+              // 面板文案与试算都必须知道 shell 总闸的真实状态，否则会写出「一律拒绝」这种假话。
+              allowShell: merged.allowShell === true,
+              // 面板要按真实接线状态禁用按钮，不能让人点了才吃 SESSION_UNAVAILABLE。
+              status: () => ({ ...status, problems: [...status.problems] }),
               session: { add: registerSessionRoot, remove: removeSessionRoot, list: listSessionRoots },
               evaluate: (input) => evaluateCall(input),
             });
@@ -437,8 +457,29 @@ export function createInstance(ctx = {}, config = {}) {
       }
     }
 
-    if (!status.persistent) {
-      status.problems.push('ctx.configEditor.edit 不可用 —— 规则改不了（只能读内存里的默认值）');
+    // 持久化有两条真实的路：写 profile 配置行（configEditor）或写兜底文件。
+    //
+    // 真机实测（DSH 0.2.2-rc.3）：configEditor 服务**是存在的**，但必须经 `ctx.get('configEditor')`
+    // 才拿得到（见 safeService 的注释）；而 profile 的 cordis.patch.yml 里**没有本插件的行**
+    // —— bundle 的行住在插件自己的 cordis.patch.yml 里，configEditor 不认它 —— 于是
+    // `configEditor.edit({ id: 'dsh-multi-workspace' })` 会抛
+    // "Configuration entry is no longer available"，store 随即降级写兜底文件。
+    //
+    // 所以这里的 status 必须说**默认落点**，不能因为"服务在"就声称写进了配置行：
+    // 使用者点「加根」时真正发生的落点是兜底文件。
+    const fileFallback = typeof store.canFileWrite === 'function' ? store.canFileWrite() : false;
+    if (fileFallback) {
+      status.persistent = true;
+      status.persistVia = 'file';
+      status.notes = [
+        ...(status.notes ?? []),
+        `规则默认落在 ${store.rulesFile ?? '.dsh/multi-workspace-rules.json'}：profile 的 cordis.patch.yml 里没有可写行`
+          + (typeof configEditor?.edit === 'function' ? '（configEditor 服务在，但它不认 bundle 自带的行）' : '（没拿到 configEditor 服务）'),
+      ];
+    } else if (!status.persistent) {
+      status.problems.push('规则无处可存：既没有 configEditor 可写的行，兜底文件也不可写');
+    } else {
+      status.persistVia = 'config';
     }
     return status;
   }

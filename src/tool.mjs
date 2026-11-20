@@ -118,6 +118,8 @@ export function createWorkspaceRootsTool(options = {}) {
   const platform = options.platform ?? process.platform;
   const workspaceRoot = options.workspaceRoot;
   const requireApproval = options.requireApproval !== false;
+  // 摘要要说真话：shell 整体放行时不能再写「一律拒绝」。
+  const allowShell = options.allowShell === true;
 
   if (!store || typeof store.add !== 'function') {
     throw new Error('createWorkspaceRootsTool: 需要 createStore() 的产物');
@@ -155,7 +157,7 @@ export function createWorkspaceRootsTool(options = {}) {
   }
 
   async function doList() {
-    const summary = summarize(store.doc);
+    const summary = summarize(store.doc, { allowShell });
     return ok('list', STORE_CODE.OK, `登记了 ${summary.roots} 个根`, {
       roots: docRoots(),
       shell: store.doc.shell,

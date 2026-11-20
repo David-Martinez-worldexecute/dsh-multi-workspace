@@ -21,6 +21,7 @@ const FILES = [
   './http.test.mjs',
   './client.test.mjs',
   './docs.test.mjs',
+  './contract.test.mjs',
 ];
 
 for (const file of FILES) {

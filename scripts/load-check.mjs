@@ -85,11 +85,19 @@ if (typeof guard === 'function') {
 }
 
 // ---- 缺 configEditor 时必须"看得见地降级"，而不是静默 ----
+// 注意这里断言的是「落到哪」，不是「有没有问题」：本机 DSH 确实不提供 configEditor 服务，
+// 但规则能写进兜底文件，那就算持久化成功（persistVia='file'），不该报成故障；
+// 只有连兜底文件都写不了才该进 problems。
 const snapshot = instance.snapshot();
 check(
-  '缺 configEditor 时 status 里有问题说明',
-  snapshot.status.persistent === false && snapshot.status.problems.length > 0,
-  JSON.stringify(snapshot.status.problems),
+  '缺 configEditor 时降级到文件、且说清落在哪',
+  snapshot.status.persistent === true && snapshot.status.persistVia === 'file',
+  JSON.stringify({
+    persistent: snapshot.status.persistent,
+    persistVia: snapshot.status.persistVia,
+    notes: snapshot.status.notes,
+    problems: snapshot.status.problems,
+  }),
 );
 
 // ---- createInstance 也能单独用（不注册）----

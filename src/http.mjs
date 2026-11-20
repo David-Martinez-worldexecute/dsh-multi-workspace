@@ -141,6 +141,13 @@ export function createRoutes(options = {}) {
   const audit = options.audit;
   const session = options.session;
   const evaluate = options.evaluate;
+  // shell 到底放不放行，取决于插件配置的 allowShell（总闸），不是规则文档的 shell.mode。
+  // 之前这里只看 doc.shell.mode，于是 allowShell: true 的机器上面板仍写着「当前一律拒绝」——
+  // 试算和面板文案一起骗人，Agent 就真的以为 shell 被禁了。
+  const allowShell = options.allowShell === true;
+  // 运行时自检（哪个能力真的接线成功）。面板要能按它禁用「必然报错」的按钮，
+  // 而不是让人点了才看到 SESSION_UNAVAILABLE。
+  const statusOf = typeof options.status === 'function' ? options.status : () => null;
 
   /** 文档指纹：面板用它判断"规则有没有变"，避免每 10 秒重绘一次。 */
   function rev() {
@@ -211,14 +218,17 @@ export function createRoutes(options = {}) {
             // 面板必须能自己说清"我这一层管到哪" —— 这三条是事实，不是文案。
             limits: {
               fileTools: '受控：write / edit / patch / delete / move 会过守卫',
-              shellTools:
-                doc.shell?.mode === 'allowlist'
+              shellTools: allowShell
+                ? 'Windows 上 pwsh / bash 子进程不认额外根；当前**整体放行**（插件配置 allowShell: true：围栏只剩文件工具这一层）'
+                : doc.shell?.mode === 'allowlist'
                   ? 'Windows 上 pwsh / bash 子进程不认额外根；当前只放行白名单里的完整命令（全等匹配）'
                   : 'Windows 上 pwsh / bash 子进程不认额外根；当前一律拒绝（放行需插件配置 allowShell: true，或规则文档 shell.mode=allowlist + 完整命令）',
               readTools: '不管：DSH 本来就不围栏读',
               sessionRoots: '会话级：只对这一场会话生效，不持久、不继承 subagent',
             },
             workspaceRoot,
+            // 运行时自检：面板据此禁用必然失败的按钮（例如没有 sandboxPolicy 时的「加临时根」）。
+            status: statusOf(),
           };
         }),
     },

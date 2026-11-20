@@ -325,7 +325,7 @@ export function resolve(req) {
 }
 
 /** 给面板/汇报用的一句话摘要。 */
-export function summarize(doc) {
+export function summarize(doc, options = {}) {
   const d = doc?.__compiled ? doc : compileDoc(doc);
   const lines = d.roots.map((r) => {
     const caps = [...r.caps].join('/') || '无';
@@ -334,10 +334,16 @@ export function summarize(doc) {
       .join('，');
     return `- ${r.path}：${caps}${extra ? `（${extra}）` : ''}`;
   });
+  // allowShell 是插件配置里的总闸，规则文档看不见它；摘要必须接受它，
+  // 否则「shell 明明整体放行」时摘要还写「一律拒绝」（同一个谎话在第三个出口）。
+  const shellLine =
+    options.allowShell === true
+      ? 'shell：整体放行（插件配置 allowShell: true）'
+      : `shell：${d.shell.mode === 'allowlist' ? `白名单 ${d.shell.allowlist.length} 条` : '一律拒绝'}`;
   return [
     `活动范围 ${d.roots.length} 个：`,
     ...(lines.length ? lines : ['- （空）']),
-    `shell：${d.shell.mode === 'allowlist' ? `白名单 ${d.shell.allowlist.length} 条` : '一律拒绝'}`,
+    shellLine,
     `敏感名单：${d.sensitive.deny.length} 条`,
     `审计：${d.audit.enabled ? '开' : '关'}`,
   ].join('\n');

@@ -1,6 +1,6 @@
 {
   "name": "dsh-multi-workspace",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "type": "module",
   "description": "Freely add extra writable roots to a DSH agent workspace: per-root capability bits, glob sub-rules, sensitive-file deny list, session-scoped temporary roots, a tool-level guard, and a browser panel — a thin wrapper over dsh-sandbox-policy.",
   "license": "MIT",

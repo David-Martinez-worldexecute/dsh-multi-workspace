@@ -2,6 +2,27 @@
 
 遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [0.5.3] - 2026-11-21
+
+### 修复
+
+- **守卫与"判定模拟器"对同一个调用给出相反答案**：`allowShell: true` 时真正干活的那条路（`guard()`）放行 shell，而 `POST /evaluate`（面板里点"试算"看到的结果）却回 `SHELL_UNCONTROLLED` / deny。根因是 `evaluateCall()` 漏传 `allowShell`，已补上。新增 `tests/contract.test.mjs`：同一个调用，两个出口必须同答案。
+- **`/state` 里的 `limits.shellTools` 与实际策略不符**：`allowShell: true` 时仍写着"当前一律拒绝"。现在按三档如实输出（整体放行 / 白名单 / 一律拒绝）。
+- **工具 `workspace_roots` 的 `status` 与面板 `limits` 是同一套说法**：`summarize()` 新增 `options.allowShell`，`src/tool.mjs`、`src/http.mjs`、`src/index.mjs` 三处调用点都传真实值，避免两个界面各说一套。
+- **可选服务一律探测不到（真机降级的真根因）**：`safeService()` 原来只做 `try { return ctx?.[name] } catch {}`，而宿主在没 `inject` 时不把这些服务挂在属性上 —— 于是 `configEditor` / `sandboxPolicy` / `sessions` 永远是 `undefined`，插件自我降级成"临时根不可用、规则只能落兜底文件"。改成**优先 `ctx.get(name)`**（宿主 app.asar 自带文档的写法：`const editor = ctx.get('configEditor')`），属性访问只作兜底。热激活实测：`persistVia` 从 `file` 变回 `config`、`sessionRootsSupported` 变 `true`、`problems` 清空。
+- **`persistVia` 说了假话**：服务在 ≠ 真写进去了。实测 profile 的 `cordis.patch.yml` 里**没有本插件的行**（bundle 的行住在插件自己的包里，`configEditor` 不认），`configEditor.edit()` 会抛 `Configuration entry is no longer available`、store 自动降级写兜底文件。现在 `persistVia` 报**默认落点**（`file`），并在 `status.notes` 里写清原因，不再声称"配置行已写"。
+
+### 为什么值得单发一版
+
+这不是文案问题。面板"判定模拟器"的用途是让人在动手之前就知道"这条会不会被拦"；它和真实守卫判错方向，代价是你在反方向找 bug。本次真机事故就是这样：另一个会话写不进文件，而插件自己的审计 JSONL 里那段时间**零拒绝记录**（最近 75 条全在 12:51Z / 12:54Z，比事故早三个小时）。
+
+### 自检
+
+- `node tests/run-all.mjs` → **tests 217 / pass 217 / fail 0**（新增契约测试 4 条：守卫/试算同答案 ×3、只给 `ctx.get` 的宿主形状 ×1；另一条"配了根写根外"因夹具假设错被删，围栏判定仍由 `tests/rules.test.mjs` 覆盖 `resolve()`）。
+- `node scripts/load-check.mjs` → 24 项全过。
+- `node scripts/route-probe.mjs` → 6 条路由全注册，`STATUS` 里 `persistVia: "file"` 且带 `notes` 说明落点。
+- 真机热激活实测（`curl /plugins/dsh-multi-workspace/state`）：`persistent: true`、`sessionRootsSupported: true`、`problems: []`；`POST /roots` 加根→`ADDED`/`via: file`→`remove`→`REMOVED`，兜底文件回到 `roots: []`。
+
 ## [0.5.2] - 2026-11-20
 
 ### 新增
