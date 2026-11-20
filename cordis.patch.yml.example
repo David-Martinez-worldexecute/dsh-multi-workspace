@@ -1,0 +1,40 @@
+# dsh-multi-workspace · profile 配置示例
+#
+# 用法：把下面两块**追加**到 C:\Users\lin\.dsh\profiles\desktop\cordis.patch.yml 末尾。
+# ⚠️ 追加前先备份：copy cordis.patch.yml cordis.patch.yml.bak.<时间戳>
+# ⚠️ 追加后必须重启 DSH 才生效（profile 不会热加载新增的行）。
+# ⚠️ 回滚：删掉这两块 → 重启。
+#
+# 两个注意点：
+# ① DSH 的 patch 是**整行 config 替换**，不是深合并。所以第二块必须把它要管的键写全
+#    （mode / workspaceRoot / additionalWritableRoots），只写 additionalWritableRoots
+#    会把前面那些键一起弄丢。
+# ② `sandbox-policy` 这个行 id 在 @deepseek-ai/dsh-base 的 550 行 patch 里没有被我直接
+#    看到（可能由别的 bundle 行提供）。如果 Cordis 报 "no such row"，说明这一行得用
+#    `- insert:` 形式新增，而不是覆盖。装之前先确认，别猜。
+
+# ============ ① 规则层（本项目拥有） ============
+- id: multi-workspace
+  disabled: false
+  config:
+    rowId: multi-workspace
+    policyRowId: sandbox-policy
+    # 变更类动作（add/remove/update/sync/probe）是否必须过审批。
+    requireApproval: true
+    # 审计：JSONL 落在工作区 .dsh/ 下，超 5MB 轮转，保留 2 份。
+    audit: true
+    auditFile: .dsh/multi-workspace-audit.jsonl
+    # 默认不管读：DSH 本来就不围栏读，管了会先把"看日志 / 看 asar"弄坏。
+    enforceRead: false
+    # shell 类一律不看路径（命令是整条字符串），默认 deny 最安全。
+    allowShell: false
+
+# ============ ② 授权层（DSH 拥有，真正让步的一层） ============
+# 只有"mode: rw 且含 write 能力位且未过期"的根才该出现在这里。
+# 让 `node bin/mw.mjs diff` 算出准确的列表，别手抄。
+- id: sandbox-policy
+  config:
+    mode: workspace-write
+    additionalWritableRoots:
+      - D:\work\proj-a
+      - E:\scratch

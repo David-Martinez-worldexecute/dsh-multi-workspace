@@ -1,0 +1,23 @@
+# 依赖
+node_modules/
+.pnpm-store/
+
+# 运行时产物（插件自己的审计日志就落在这里）
+.dsh/
+*.jsonl
+*.jsonl.[0-9]*
+
+# 日志与临时文件
+*.log
+*.tmp
+*.bak
+*.bak.[0-9]*
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# 本机内部记录（含本机绝对路径，不随开源发布）
+M4-安装记录.md

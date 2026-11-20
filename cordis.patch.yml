@@ -1,0 +1,29 @@
+# dsh-multi-workspace 的自挂载层。
+#
+# 这一行负责「让插件被加载」：没有它，包装进 profile 也不会实例化。
+# 写法与 dsh-plan-mode-plus / dsh-ai-memory 的自挂载层一致：`- insert:` 新插入一行。
+#
+# 注意两件事：
+#  ① Cordis 的 patch 是**整行替换 config**，不是深合并。你要在某处覆盖某一项，
+#     必须把这一行的 config 完整重述一遍，否则漏掉的键会消失。
+#  ② 这里的 config 只是「规则层的默认值」。真正想加的额外根写在
+#     profile 的 cordis.patch.yml 里同一个 id 下的 config.roots，或用 workspace_roots 工具改。
+- insert:
+    - id: dsh-multi-workspace
+      name: dsh-multi-workspace
+      config:
+        # 持久写（改规则 = 改 profile 配置）必须过一次审批。没有可用的审批器时 fail closed。
+        requireApproval: true
+        # 读默认不管：DSH 本来就不围栏读，管了会把「看日志 / 看 asar」这类正常操作先弄坏。
+        enforceRead: false
+        # shell（pwsh/bash/ops_bash）：**这个 profile 显式放开**。
+        # 代码默认值是 false（命令是一整条字符串，路径藏在里面，放行等于这条闸门对 shell 失效）；
+        # 但默认拒绝会让整个 profile 的 Agent 连 `node --test` 都跑不了，所以这里放开。
+        # 代价必须记住：shell 放行后，围栏只剩 DSH 文件工具（write/edit/patch/delete/move）这一层，
+        # shell 里的重定向、`git`、`node -e` 都能写到规则外——审计仍会记录，但拦不住。
+        # 要更细：改回 false，并在规则文档里用 shell.mode: allowlist + 完整命令等值匹配。
+        allowShell: true
+        audit: true
+        auditFile: .dsh/multi-workspace-audit.jsonl
+        # 规则文档可以从这里起步；用工具增删后由 configEditor 写回 profile。
+        roots: []

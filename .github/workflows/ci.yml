@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    # 只在 Linux 上跑测试：本仓库的用例全部用假 fs / 假 configEditor，
+    # 不依赖 Windows 的真实 ACL，所以在哪跑都一样。
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['24.x']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: 安装（零运行时依赖，只为拿锁文件一致性）
+        run: npm install --no-audit --no-fund --ignore-scripts || true
+      - name: 语法检查
+        run: |
+          node --check src/index.mjs
+          node --check src/tool.mjs
+          node --check src/http.mjs
+          node --check lib/client.js
+      - name: 全量测试
+        run: node tests/run-all.mjs
+      - name: 装前自检（假 ctx 调 apply）
+        run: node scripts/load-check.mjs
+      - name: CLI 冒烟（只读命令）
+        run: |
+          node bin/mw.mjs list
+          node bin/mw.mjs help

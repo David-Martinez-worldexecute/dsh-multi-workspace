@@ -1,0 +1,56 @@
+{
+  "name": "dsh-multi-workspace",
+  "version": "0.5.2",
+  "type": "module",
+  "description": "Freely add extra writable roots to a DSH agent workspace: per-root capability bits, glob sub-rules, sensitive-file deny list, session-scoped temporary roots, a tool-level guard, and a browser panel — a thin wrapper over dsh-sandbox-policy.",
+  "license": "MIT",
+  "author": "dsh-multi-workspace contributors",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "sandbox",
+    "workspace",
+    "writable-roots",
+    "agent-safety"
+  ],
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/",
+    "lib/",
+    "bin/",
+    "panel/",
+    "cordis.patch.yml",
+    "README.md",
+    "边界与自检.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=24.9.0"
+  },
+  "scripts": {
+    "test": "node tests/run-all.mjs",
+    "check": "node tests/run-all.mjs && node scripts/load-check.mjs",
+    "load-check": "node scripts/load-check.mjs"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-session"
+      ]
+    }
+  }
+}
