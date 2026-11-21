@@ -3,14 +3,28 @@
 <p>
   <a href="https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="license" src="https://img.shields.io/badge/license-MIT-blue.svg">
-  <img alt="node" src="https://img.shields.io/badge/node-%3E%3D24.9.0-3c873a.svg">
+  <img alt="node" src="https://img.shields.io/badge/node-%3E%3D20.0.0-3c873a.svg">
   <img alt="tests" src="https://img.shields.io/badge/tests-217%20passing-brightgreen.svg">
   <img alt="dsh" src="https://img.shields.io/badge/DeepSeek%20Harness-0.2.2--rc.3-6f42c1.svg">
 </p>
 
-**给 DeepSeek Harness 的 Agent 自由添加多个文件活动范围，并且每个根单独规定「读 / 写 / 删 / 移」。**
+**Agent 能写你的文件。但你能一眼说出它刚才动过哪儿、被谁允许的吗？**
 
-_Multiple writable workspaces for DSH agents — per-root capabilities, session-scoped grants, JSONL audit, and a real in-app panel. No kernel patches._
+给 DSH 的 Agent 添加额外可写根，并且**每个根单独规定「读 / 写 / 删 / 移」**。
+真正不一样的地方是：每次放行和拒绝都进 JSONL 审计，面板把边界翻译成一句人话——
+「该根有写权限但**无**删权限；`.env` 已被敏感名单拦截」——你不用翻日志就能判断边界合不合理。
+
+**安装（一条命令）**
+
+```bash
+npx -y @deepseek-ai/dsh plugin --profile desktop add dsh-multi-workspace
+```
+
+重启 DSH 生效——会话输入框左边出现「根 N」胶囊即安装成功。
+需要 Node ≥ 20、DSH ≥ 0.2.2-rc.3；本地开发和回滚见 [§6 安装](#6--安装--installation)。
+
+_English — Extra writable roots for DSH agents, with per-root capability bits and a JSONL audit
+trail. The point is legibility: a denial names the rule that blocked it. No kernel patches._
 
 ![多工作区面板 · the panel](docs/panel-preview.png)
 
@@ -180,27 +194,40 @@ node bin/mw.mjs status
 
 ## 6 · 安装 · Installation
 
-> 这一节在 v0.5.1 重写过。旧版教人手工往 `cordis.patch.yml` 加 `- id: multi-workspace`，那是错的：
-> 行 id 必须等于包名 `dsh-multi-workspace`，否则 `configEditor.edit` 会报
-> `Configuration entry is no longer available`。
+> v0.5.4 起推荐一条命令。旧版教的「改 profile JSON + `mklink` + `set_bundle`」仍然有效，但只用于**本地开发**（改代码即时生效），见 6.2。
+>
+> 历史教训保留：手工往 `cordis.patch.yml` 加 `- id: multi-workspace` 是错的 —— 行 id 必须等于包名
+> `dsh-multi-workspace`，否则 `configEditor.edit` 报 `Configuration entry is no longer available`。
 
-### 6.1 链进 profile（link:，不复制目录）
+### 6.1 一条命令（推荐）
 
 ```bash
-cd C:\Users\lin\.dsh\profiles\desktop
+npx -y @deepseek-ai/dsh plugin --profile desktop add dsh-multi-workspace
+```
 
-# 1) package.json 的 dependencies 加一行
-#    "dsh-multi-workspace": "link:C:/Users/lin/Desktop/AIAgent活动文件限制/dsh-multi-workspace"
+- 它会自动建/复用 profile、`pnpm add` 装包，并把包名登记进该 profile 的 `dsh.profile.bundles`；
+  **装包与「被 DSH 选中」一次完成** —— 不用手改 JSON、不用 `mklink`、不用再调 `plugin_manager`。
+- `--profile` 换成你自己的 profile 名（`~/.dsh/profiles/` 下的目录名，桌面版通常就是 `desktop`）。
+- 前置：`npx`（Node ≥ 20）与 `pnpm`（`dsh plugin` 会把参数转发给 pnpm）。
+- 重启 DSH 生效；验收见 6.4。
+
+### 6.2 本地开发安装（link + junction，改代码即时生效）
+
+```bash
+cd ~/.dsh/profiles/desktop
+
+# 1) package.json 的 dependencies 加一行（请换成你 clone 下来的仓库绝对路径）
+#    "dsh-multi-workspace": "link:<你的仓库路径>"
 
 # 2) 同一个 package.json 的 dsh.profile.bundles 数组里加一个 "dsh-multi-workspace"
 
-# 3) 建 junction（Windows 用 mklink /J；不要复制目录，也不要 Remove-Item -Recurse 删它）
-cmd /c mklink /J node_modules\dsh-multi-workspace "C:\Users\lin\Desktop\AIAgent活动文件限制\dsh-multi-workspace"
+# 3) 建 junction（Windows 用 mklink /J；不要复制目录，也不要用 Remove-Item -Recurse 删它）
+cmd /c mklink /J node_modules\dsh-multi-workspace "<你的仓库路径>"
 ```
 
-### 6.2 让 DSH 真的加载它（缺这一步就是"装了但没界面"）
+### 6.3 让 DSH 真的加载它（缺这一步就是「装了但没界面」）
 
-只改 `package.json` 不够 —— bundle 还要被"选中/启用"：
+只改 `package.json` 不够 —— bundle 还要被「选中/启用」：
 
 ```
 plugin_manager action=set_bundle target=dsh-multi-workspace enabled=true
@@ -212,18 +239,18 @@ plugin_manager action=set_bundle target=dsh-multi-workspace enabled=true
   与 `tool "workspace_roots" must declare output { schema, render }`（工具声明不全）。
 - 客户端 bundle 与节点侧是**两条链**：面板能显示不代表服务端加载了。
 
-### 6.3 验证（30 秒，别猜）
+### 6.4 验证（30 秒，别猜）
 
 ```bash
 # 1) 服务端路由活着 → 200 + JSON
 curl http://127.0.0.1:<你的端口>/plugins/dsh-multi-workspace/state
 
-# 2) 404 但面板有胶囊 → 节点侧没加载（回去看 6.2 的 diagnostic）
+# 2) 404 但面板有胶囊 → 节点侧没加载（回去看 6.3 的 diagnostic）
 
 # 3) 输入框左侧出现「根 N」胶囊 → 客户端也通了
 ```
 
-### 6.4 回滚
+### 6.5 回滚
 
 1. `plugin_manager action=set_bundle target=dsh-multi-workspace enabled=false`
 2. 删 `dependencies` 那行与 `dsh.profile.bundles` 里的名字
@@ -351,7 +378,7 @@ node bin/mw.mjs diff       # 期望：如实报告授权层现状
 | 项目 | 要求 | Requirement |
 | --- | --- | --- |
 | DeepSeek Harness | `0.2.2-rc.3`（实测版本） | tested on 0.2.2-rc.3 |
-| Node.js | `>= 24.9.0` | see `engines` in `package.json` |
+| Node.js | `>= 20.0.0` | see `engines` in `package.json`（实测环境为 25.x；20–24 未逐一验证） |
 | 系统 | Windows 10 / 11（`pwsh` 边界只在 Windows 上验证过） | Windows 10/11 |
 | 运行时依赖 | **零**（只用 `node:` 内置模块） | zero runtime deps |
 

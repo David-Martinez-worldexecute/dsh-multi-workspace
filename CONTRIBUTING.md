@@ -9,7 +9,7 @@ Thanks for helping. The project is small, but the boundaries are strict: **a PR 
 ## 1. 先跑一遍，再改 · Run before you change
 
 ```bash
-node --version          # 需要 >= 24.9.0
+node --version          # 需要 >= 20.0.0
 npm test                # node tests/run-all.mjs，当前 205 条，必须全绿
 npm run check           # 测试 + node scripts/load-check.mjs（真调 apply()）
 node scripts/route-probe.mjs   # 假 ctx 跑一遍 6 条 HTTP 路由的注册

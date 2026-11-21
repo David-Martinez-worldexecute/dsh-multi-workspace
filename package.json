@@ -2,9 +2,9 @@
   "name": "dsh-multi-workspace",
   "version": "0.5.3",
   "type": "module",
-  "description": "Freely add extra writable roots to a DSH agent workspace: per-root capability bits, glob sub-rules, sensitive-file deny list, session-scoped temporary roots, a tool-level guard, and a browser panel — a thin wrapper over dsh-sandbox-policy.",
+  "description": "Give a DSH agent extra writable roots, then see the proof: per-root read/write/delete/move bits, a sensitive-file deny list, and a JSONL audit trail you can read as plain-language trust summaries.",
   "license": "MIT",
-  "author": "dsh-multi-workspace contributors",
+  "author": "David-Martinez-worldexecute",
   "keywords": [
     "dsh",
     "deepseek-harness",
@@ -12,7 +12,9 @@
     "sandbox",
     "workspace",
     "writable-roots",
-    "agent-safety"
+    "agent-safety",
+    "audit",
+    "permissions"
   ],
   "repository": {
     "type": "git",
@@ -21,6 +23,10 @@
   "homepage": "https://github.com/David-Martinez-worldexecute/dsh-multi-workspace#readme",
   "bugs": {
     "url": "https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "main": "src/index.mjs",
   "exports": {
@@ -33,6 +39,7 @@
     "lib/",
     "bin/",
     "panel/",
+    "icon.svg",
     "docs/",
     "cordis.patch.yml",
     "README.md",
@@ -44,7 +51,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=24.9.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "test": "node tests/run-all.mjs",
@@ -53,6 +60,9 @@
   },
   "dsh": {
     "manifestVersion": 1,
+    "engines": {
+      "dsh": ">=0.2.2-rc.3"
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
     },

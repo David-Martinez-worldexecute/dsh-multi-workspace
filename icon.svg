@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Multi workspace: extra writable roots with visible trust">
+  <defs>
+    <linearGradient id="mw-g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 外层：主工作区（默认信任的那一个） -->
+  <rect x="6" y="10" width="30" height="30" rx="7" fill="none" stroke="url(#mw-g)" stroke-width="3"/>
+
+  <!-- 内层：被附加进来的根，虚线表示「临时授权的边界」 -->
+  <rect x="26" y="24" width="32" height="30" rx="7" fill="none"
+        stroke="url(#mw-g)" stroke-width="3" stroke-dasharray="5 4" opacity="0.95"/>
+
+  <!-- 两个圈相通的地方：一条连线，表示「这一条路是显式授权出来的」 -->
+  <path d="M30 34 H40" fill="none" stroke="#94a3b8" stroke-width="2.6" stroke-linecap="round"/>
+
+  <!-- 右下角：能力的可见证据（一个对勾，表示「这条被允许」） -->
+  <path d="M40 45 l4 4 l8 -9" fill="none" stroke="#22c55e" stroke-width="3.2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

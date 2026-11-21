@@ -24,8 +24,22 @@ test('README 首屏有徽章、双语定位与面板截图', () => {
   assert.match(md, /DeepSeek Harness/, '缺项目定位');
   // 双语：标题行里同时有中文与英文短语
   assert.match(md, /^# dsh-multi-workspace$/m);
-  assert.match(md, /给 DeepSeek Harness 的 Agent/);
-  assert.match(md, /Multiple writable workspaces for DSH agents/);
+  assert.match(md, /Agent 能写你的文件/, '缺中文一句话定位');
+  assert.match(md, /Extra writable roots for DSH agents/, '缺英文一句话定位');
+});
+
+/**
+ * 分发闭环的守卫：第一屏必须能直接复制一条安装命令。
+ * 这条曾经是「README 写得挺全、但用户翻到第三屏才知道怎么装」的真实缺口，
+ * 所以它不该只靠人记得，得让机器守。
+ */
+test('README 首屏（前 2000 字符）里有一条可复制的安装命令', () => {
+  const head = read('README.md').slice(0, 2000);
+  assert.match(
+    head,
+    /dsh plugin --profile \S+ add dsh-multi-workspace/,
+    '首屏没有一条可直接复制的安装命令（应形如 npx -y @deepseek-ai/dsh plugin --profile desktop add dsh-multi-workspace）',
+  );
 });
 
 test('面板截图真的存在，而且不是空壳', () => {
