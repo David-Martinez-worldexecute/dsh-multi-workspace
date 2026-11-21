@@ -1,10 +1,12 @@
 # dsh-multi-workspace
 
 <p>
+  <a href="https://www.npmjs.com/package/dsh-multi-workspace"><img alt="npm" src="https://img.shields.io/npm/v/dsh-multi-workspace.svg"></a>
+  <a href="https://www.npmjs.com/package/dsh-multi-workspace"><img alt="npm downloads" src="https://img.shields.io/npm/dm/dsh-multi-workspace.svg"></a>
   <a href="https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/David-Martinez-worldexecute/dsh-multi-workspace/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="license" src="https://img.shields.io/badge/license-MIT-blue.svg">
   <img alt="node" src="https://img.shields.io/badge/node-%3E%3D20.0.0-3c873a.svg">
-  <img alt="tests" src="https://img.shields.io/badge/tests-217%20passing-brightgreen.svg">
+  <img alt="tests" src="https://img.shields.io/badge/tests-218%20passing-brightgreen.svg">
   <img alt="dsh" src="https://img.shields.io/badge/DeepSeek%20Harness-0.2.2--rc.3-6f42c1.svg">
 </p>
 
