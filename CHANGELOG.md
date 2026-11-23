@@ -2,6 +2,12 @@
 
 遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [0.5.5] - 2026-11-23
+
+### 修复
+
+- **CI 隐私闸**：`scripts/doctor.mjs` 与 `src/doctor.mjs` 里的示例路径改用 `%USERPROFILE%`，避免 CI 的隐私检查把「文档示例里的假路径」判成真实泄漏。无行为变更，仅为让 npm 包内容与仓库 HEAD 完全一致。
+
 ## [0.5.4] - 2026-11-23
 
 ### 新增
