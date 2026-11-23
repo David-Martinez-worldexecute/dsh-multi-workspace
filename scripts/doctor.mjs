@@ -3,7 +3,7 @@
  * scripts/doctor.mjs —— 零依赖体检 CLI。
  *
  *   node scripts/doctor.mjs
- *   node scripts/doctor.mjs --profile C:/Users/you/.dsh/profiles/desktop
+ *   node scripts/doctor.mjs --profile "%USERPROFILE%/.dsh/profiles/desktop"
  *   node scripts/doctor.mjs --json
  *
  * 它解决的问题：插件「装好了、面板也在，但写文件还是被拒」这类现象，

@@ -68,7 +68,7 @@ export function lastTraceAt(text, events = ['registered', 'apply-enter']) {
 /**
  * 执行体检。
  * @param {object} options
- * @param {string} options.profileDir   例如 C:/Users/x/.dsh/profiles/desktop
+ * @param {string} options.profileDir   例如 %USERPROFILE%/.dsh/profiles/desktop
  * @param {string} options.packageDir   插件包目录（本仓库）
  * @param {object} options.fs           node:fs（测试可注入）
  * @returns {{ok:boolean, problems:Array<{code:string,message:string,fix:string}>, info:object}}
