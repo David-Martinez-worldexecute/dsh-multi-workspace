@@ -53,7 +53,7 @@ function traceLoad(event, extra = {}) {
 
 /** 与包名保持一致：Cordis 的行名与包名不同名时，排查成本会白白翻倍。 */
 export const name = 'dsh-multi-workspace';
-export const version = '0.5.3';
+export const version = '0.5.4';
 
 /**
  * Cordis 的依赖声明。`tools` 是必须的（不给就只有工具没有守卫）；

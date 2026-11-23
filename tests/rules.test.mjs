@@ -75,7 +75,7 @@ test('敏感文件按扩展名拦（*.pem / id_rsa）', () => {
 });
 
 test('敏感目录按段拦（.ssh/**）', () => {
-  assert.equal(codeOf('read', { file_path: 'C:\\Users\\lin\\.ssh\\id_rsa' }, { enforceRead: true }), RULE_CODE.SENSITIVE_DENIED);
+  assert.equal(codeOf('read', { file_path: 'D:\\work\\.ssh\\id_rsa' }, { enforceRead: true }), RULE_CODE.SENSITIVE_DENIED);
 });
 
 test('根外写 → PATH_OUTSIDE_SCOPE', () => {
@@ -163,13 +163,13 @@ test('多个路径里只要有一个越界就拒', () => {
 });
 
 test('POSIX 平台不被 Windows 斜杠规则污染', () => {
-  const doc = { roots: [{ path: '/home/lin/proj', caps: ['read', 'write'] }] };
+  const doc = { roots: [{ path: '/srv/app', caps: ['read', 'write'] }] };
   assert.equal(
-    resolve({ name: 'write', args: { file_path: '/home/lin/proj/a.txt' }, doc, platform: 'linux', now: NOW }).code,
+    resolve({ name: 'write', args: { file_path: '/srv/app/a.txt' }, doc, platform: 'linux', now: NOW }).code,
     undefined,
   );
   assert.equal(
-    resolve({ name: 'write', args: { file_path: '/home/lin/other/a.txt' }, doc, platform: 'linux', now: NOW }).code,
+    resolve({ name: 'write', args: { file_path: '/srv/other/a.txt' }, doc, platform: 'linux', now: NOW }).code,
     RULE_CODE.PATH_OUTSIDE_SCOPE,
   );
 });

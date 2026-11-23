@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 
 import { createCli, parseArgs, scanAdditionalRoots, CLI_DEFAULT_FILE } from '../src/cli.mjs';
 
-const WS = 'C:\\Users\\lin\\Desktop\\ws';
+const WS = 'D:\\work\\Desktop\\ws';
 const ROOT = `${WS}\\.dsh\\workspace-roots.json`;
 
 function memFs(seed = {}) {

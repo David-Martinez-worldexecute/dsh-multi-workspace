@@ -91,9 +91,9 @@ test('denialReason rejects drive roots, OS trees, home root and DSH home', () =>
   assert.ok(denialReason('C:\\Windows\\System32', { platform: PLATFORM }))
   assert.ok(denialReason('C:\\Program Files\\x', { platform: PLATFORM }))
   assert.ok(denialReason('C:\\ProgramData', { platform: PLATFORM }))
-  assert.ok(denialReason('C:\\Users\\lin', { platform: PLATFORM, home: 'C:\\Users\\lin' }))
-  assert.ok(denialReason('C:\\Users\\lin\\.dsh', { platform: PLATFORM, dshHome: 'C:\\Users\\lin\\.dsh' }))
-  assert.equal(denialReason('D:\\projects\\foo', { platform: PLATFORM, home: 'C:\\Users\\lin' }), null)
+  assert.ok(denialReason('D:\\work', { platform: PLATFORM, home: 'D:\\work' }))
+  assert.ok(denialReason('D:\\work\\.dsh', { platform: PLATFORM, dshHome: 'D:\\work\\.dsh' }))
+  assert.equal(denialReason('D:\\projects\\foo', { platform: PLATFORM, home: 'D:\\work' }), null)
 })
 
 test('checkRoot rejects relative, unsupported forms and empty input', () => {

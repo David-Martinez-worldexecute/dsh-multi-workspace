@@ -7,7 +7,7 @@
  * guard.mjs 只做转导出（re-export），rules.mjs 直接 import。
  *
  * 平台分流是硬需求：validate.mjs 的 stripTrailingSeparators 无条件把 `/` 换成 `\`
- * （Windows 语义），拿它判 POSIX 路径会把 `/home/lin/proj` 变成 `\home\lin\proj`，
+ * （Windows 语义），拿它判 POSIX 路径会把 `/srv/app/proj` 变成 `\home\lin\proj`，
  * 于是所有包含判断都错。这里按 platform 分流，两个平台各自用各自的规则。
  */
 

@@ -59,10 +59,11 @@ function memFs(initial = {}) {
 const FIXED_NOW = () => new Date('2026-11-20T03:00:00.000Z');
 
 test('summarizeArgs：只给形状，不给值（凭据不进磁盘）', () => {
-  const shape = summarizeArgs({ path: 'D:/x', token: 'sk-super-secret', n: 3, ok: true, list: [1, 2] });
+  // 夹具故意用一个看起来像凭据的串，验证它只被记录成形状；标记豁免以免误报
+  const shape = summarizeArgs({ path: 'D:/x', token: 'sk-super-secret', n: 3, ok: true, list: [1, 2] }); // privacy-check: allow
   assert.deepEqual(shape, {
     path: 'string:4',
-    token: 'string:15',
+    token: 'string:15', // privacy-check: allow
     n: 'number',
     ok: 'boolean',
     list: 'array:2',

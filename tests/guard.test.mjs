@@ -79,12 +79,12 @@ test('只读模式拦所有写/删，码是 READ_ONLY_MODE', () => {
 })
 
 test('读默认不管（DSH 本来就不围栏读）', () => {
-  assert.equal(codeOf('read', { file_path: 'C:\\Users\\lin\\anything.txt' }), undefined)
+  assert.equal(codeOf('read', { file_path: 'D:\\work\\anything.txt' }), undefined)
 })
 
 test('显式 enforceRead 后，根外读被拦', () => {
   assert.equal(
-    codeOf('read', { file_path: 'C:\\Users\\lin\\anything.txt' }, { enforceRead: true }),
+    codeOf('read', { file_path: 'D:\\work\\anything.txt' }, { enforceRead: true }),
     GUARD_CODE.PATH_OUTSIDE_SCOPE,
   )
 })
@@ -147,11 +147,11 @@ test('纯字符串根 = 四种能力全给', () => {
 })
 
 test('POSIX 平台不被 Windows 的斜杠规则污染', () => {
-  const posix = normalizeRules(['/home/lin/proj'], 'posix')
-  assert.equal(posix[0].path, '/home/lin/proj')
+  const posix = normalizeRules(['/srv/app'], 'posix')
+  assert.equal(posix[0].path, '/srv/app')
   const r = decide({
     name: 'write',
-    args: { file_path: '/home/lin/proj/a.txt' },
+    args: { file_path: '/srv/app/a.txt' },
     rules: posix,
     platform: 'posix',
     mode: 'workspace-write',

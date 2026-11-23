@@ -1,6 +1,6 @@
 {
   "name": "dsh-multi-workspace",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "type": "module",
   "description": "Give a DSH agent extra writable roots, then see the proof: per-root read/write/delete/move bits, a sensitive-file deny list, and a JSONL audit trail you can read as plain-language trust summaries.",
   "license": "MIT",
@@ -55,8 +55,10 @@
   },
   "scripts": {
     "test": "node tests/run-all.mjs",
-    "check": "node tests/run-all.mjs && node scripts/load-check.mjs",
-    "load-check": "node scripts/load-check.mjs"
+    "check": "node tests/run-all.mjs && node scripts/load-check.mjs && node scripts/privacy-check.mjs",
+    "load-check": "node scripts/load-check.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "check:privacy": "node scripts/privacy-check.mjs"
   },
   "dsh": {
     "manifestVersion": 1,

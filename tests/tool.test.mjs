@@ -69,7 +69,7 @@ function build({ entries = { 'D:\\work\\a': 'dir', 'D:\\work\\b': 'dir' }, confi
     audit,
     fs,
     platform: W,
-    workspaceRoot: 'C:\\Users\\lin\\Desktop\\ws',
+    workspaceRoot: 'D:\\work\\Desktop\\ws',
     approve,
     requireApproval,
     session,
@@ -153,10 +153,10 @@ test('requireApproval=false 时不需要审批（本地控制台用）', async (
 
 test('add 工作区内的路径 → 返回 PATH_INSIDE_WORKSPACE 且 ok:true（"不用加"，不是错误）', async () => {
   const { tool, editor } = build({
-    entries: { 'C:\\Users\\lin\\Desktop\\ws': 'dir', 'C:\\Users\\lin\\Desktop\\ws\\sub': 'dir' },
+    entries: { 'D:\\work\\Desktop\\ws': 'dir', 'D:\\work\\Desktop\\ws\\sub': 'dir' },
     approve: approveYes,
   });
-  const out = await tool.execute({ action: 'add', path: 'C:\\Users\\lin\\Desktop\\ws\\sub' });
+  const out = await tool.execute({ action: 'add', path: 'D:\\work\\Desktop\\ws\\sub' });
   assert.equal(out.ok, true);
   assert.equal(out.code, 'PATH_INSIDE_WORKSPACE');
   assert.equal(editor.state.edits.length, 0);

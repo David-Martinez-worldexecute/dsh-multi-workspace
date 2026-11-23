@@ -1,6 +1,6 @@
 # dsh-multi-workspace · profile 配置示例
 #
-# 用法：把下面两块**追加**到 C:\Users\lin\.dsh\profiles\desktop\cordis.patch.yml 末尾。
+# 用法：把下面两块**追加**到 %USERPROFILE%\.dsh\profiles\desktop\cordis.patch.yml 末尾。
 # ⚠️ 追加前先备份：copy cordis.patch.yml cordis.patch.yml.bak.<时间戳>
 # ⚠️ 追加后必须重启 DSH 才生效（profile 不会热加载新增的行）。
 # ⚠️ 回滚：删掉这两块 → 重启。

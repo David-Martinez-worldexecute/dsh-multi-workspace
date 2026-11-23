@@ -2,6 +2,22 @@
 
 遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## [0.5.4] - 2026-11-23
+
+### 新增
+
+- **`npm run doctor`：离线体检**。`src/doctor.mjs`（纯函数，注入 fs）+ `scripts/doctor.mjs`（零依赖 CLI，`--json` 可机读）。检查 profile 的依赖声明、`bundles` 登记、junction 解析、配置行、规则文件、审计文件、最后加载时间，共 9 个问题码；`LINK_BROKEN` 会直接给出修复命令。退出码 0 = 通过，1 = 有问题。
+  - 来由：项目父目录改名后，profile 里的 `link:` 仍指旧路径，DSH 启动时解析失败并**静默跳过**——模块不导入、`apply` 不执行、路由不挂载，面板却照旧渲染。这种失效以前没有任何提示，现在一条命令就能看见。
+
+### 修复
+
+- **隐私**：17 处本机绝对路径脱敏（README / DETAIL / panel / tests / 边界与自检），`scripts/privacy-check.mjs` 入库并接进 `npm run check`。检查器支持 `// privacy-check: allow` 行内豁免，仅用于「夹具里必须出现敏感形状」的显式场景。
+- **CI**：Node matrix 从 `24.x` 扩到 `20.x / 22.x / 24.x`（与 `engines.node >=20` 对齐），并新增隐私检查步骤。
+
+### 测试
+
+- 新增 `tests/doctor.test.mjs` 4 条：健康 profile、**把 junction 指向的目录删掉 → 必须报 `LINK_BROKEN`**、`roots=0` 只报 `ROOTS_EMPTY`、helper 单测。全量 **222 条通过**。
+
 ## [0.5.3] - 2026-11-21
 
 ### 修复

@@ -13,7 +13,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['24.x']
+        # 与 package.json 的 engines.node (>=20) 对齐：20 是最低支持线，22/24 是当前 LTS 线。
+        node: ['20.x', '22.x', '24.x']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,6 +30,8 @@ jobs:
           node --check lib/client.js
       - name: 全量测试
         run: node tests/run-all.mjs
+      - name: 隐私检查（本机路径 / 凭据形状不许进仓库）
+        run: npm run check:privacy
       - name: 装前自检（假 ctx 调 apply）
         run: node scripts/load-check.mjs
       - name: CLI 冒烟（只读命令）

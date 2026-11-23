@@ -116,6 +116,6 @@ npm publish --otp=<6位码>
 
 - [ ] `npm view dsh-multi-workspace version` 返回版本号
 - [ ] 新 profile 一条命令装完，重启后出现「根 N」胶囊
-- [ ] `npm pack --dry-run` 清单里没有 `C:\Users\lin`、没有 `边界与自检.md` 里的本机路径
+- [ ] `npm pack --dry-run` 清单里没有 `%USERPROFILE%`、没有 `边界与自检.md` 里的本机路径
 - [ ] README 第一屏可见：标题、一句话、一条安装命令
 - [ ] 至少一个索引页能搜到
